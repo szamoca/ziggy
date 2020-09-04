@@ -23,6 +23,10 @@ class RoutePayload
 
     public function applyFilters($group)
     {
+        if ($group && config()->has('ziggy.listed_groups')) {
+            return $this->listed_groups($group);
+        }
+
         if ($group) {
             return $this->group($group);
         }
@@ -38,6 +42,29 @@ class RoutePayload
 
         if (config()->has('ziggy.whitelist')) {
             return $this->whitelist();
+        }
+
+        return $this->routes;
+    }
+
+    public function listed_group($group)
+    {
+        if (is_array($group)) {
+            $filters = [];
+            foreach ($group as $groupName) {
+                $list = config("ziggy.listed_group.{$groupName}");
+                if (config("ziggy.listed_groups.{$groupName}.{$list}") === 'whitelist') {
+                    $filters = array_merge($filters, config("ziggy.groups.{$groupName}"));
+                }
+            }
+
+            return is_array($filters)? $this->filter($filters, true) : $this->routes;
+        }
+        else if (config()->has("ziggy.listed_groups.{$group}")) {
+            $list = config("ziggy.listed_group.{$group}");
+            if ($list === 'blacklist' || $list === 'whitelist') {
+                return $this->filter(config("ziggy.listed_groups.{$group}.{$list}"), $list === 'blacklist' ? false : true);
+            }
         }
 
         return $this->routes;
