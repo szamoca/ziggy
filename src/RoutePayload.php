@@ -47,12 +47,12 @@ class RoutePayload
         return $this->routes;
     }
 
-    public function listed_group($group)
+    public function listed_groups($group)
     {
         if (is_array($group)) {
             $filters = [];
             foreach ($group as $groupName) {
-                $list = config("ziggy.listed_group.{$groupName}");
+                $list = key(config("ziggy.listed_groups.{$groupName}"));
                 if (config("ziggy.listed_groups.{$groupName}.{$list}") === 'whitelist') {
                     $filters = array_merge($filters, config("ziggy.groups.{$groupName}"));
                 }
@@ -61,7 +61,7 @@ class RoutePayload
             return is_array($filters)? $this->filter($filters, true) : $this->routes;
         }
         else if (config()->has("ziggy.listed_groups.{$group}")) {
-            $list = config("ziggy.listed_group.{$group}");
+            $list = key(config("ziggy.listed_groups.{$group}"));
             if ($list === 'blacklist' || $list === 'whitelist') {
                 return $this->filter(config("ziggy.listed_groups.{$group}.{$list}"), $list === 'blacklist' ? false : true);
             }
